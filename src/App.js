@@ -1,25 +1,18 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from "react";
+// import GaugeChart from "./components/graphs/GaugeChart";
+import SkeletonD3 from "./components/graphs/SkeletonD3";
+import GaugeChart from "./components/graphs/GaugeChart";
+import "./App.css";
 
 function App() {
+  const [data, setData] = useState([25, 30, 45, 60, 10, 65, 75]);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <React.Fragment>
+      {/* <GaugeChart data={[0.5, 0.5]} /> */}
+      <SkeletonD3 data={data} />
+      <GaugeChart data={[0.5, 0.5]} />
+    </React.Fragment>
   );
 }
 
