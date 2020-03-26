@@ -1,17 +1,16 @@
 import React, { useRef, useEffect, useState } from "react";
 import { select, axisBottom, axisLeft, scaleLinear, scaleBand } from "d3";
 import useResizeObserver from "../../../hooks/useResizeObserver";
-import "./index.css";
 
 function BarChart({ data }) {
-  const svgRef = useRef();
+  const boundsRef = useRef();
   const wrapperRef = useRef();
   const dimensions = useResizeObserver(wrapperRef);
 
   // will be called initially and on every data change
   useEffect(() => {
-    const svg = select(svgRef.current);
-    console.log(dimensions);
+    const wrapper = select(wrapperRef.current);
+    const bounds = select(boundsRef.current);
 
     if (!dimensions) return;
 
@@ -38,17 +37,17 @@ function BarChart({ data }) {
 
     // create x-axis
     const xAxis = axisBottom(xScale).ticks(data.length);
-    svg
+    bounds
       .select(".x-axis")
       .style("transform", `translateY(${dimensions.height}px)`)
       .call(xAxis);
 
     // create y-axis
     const yAxis = axisLeft(yScale);
-    svg.select(".y-axis").call(yAxis);
+    bounds.select(".y-axis").call(yAxis);
 
     // draw the bars
-    svg
+    bounds
       .selectAll(".bar")
       .data(data)
       .join("rect")
@@ -58,7 +57,7 @@ function BarChart({ data }) {
       .attr("y", -dimensions.height)
       .attr("width", xScale.bandwidth())
       .on("mouseenter", (value, index) => {
-        svg
+        bounds
           .selectAll(".tooltip")
           .data([value])
           .join(enter => enter.append("text").attr("y", yScale(value) - 4))
@@ -70,7 +69,7 @@ function BarChart({ data }) {
           .attr("y", yScale(value) - 8)
           .attr("opacity", 1);
       })
-      .on("mouseleave", () => svg.select(".tooltip").remove())
+      .on("mouseleave", () => bounds.select(".tooltip").remove())
       .transition()
       .attr("fill", colorScale)
       .attr("height", value => dimensions.height - yScale(value));
@@ -79,8 +78,8 @@ function BarChart({ data }) {
   }, [data, dimensions]);
 
   return (
-    <div ref={wrapperRef} style={{ marginBottom: "2rem" }}>
-      <svg ref={svgRef}>
+    <div ref={wrapperRef}>
+      <svg ref={boundsRef}>
         <g className="x-axis" />
         <g className="y-axis" />
       </svg>

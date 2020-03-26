@@ -1,7 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { select, axisBottom, axisLeft, scaleLinear, scaleBand } from "d3";
 import useResizeObserver from "../../../hooks/useResizeObserver";
-import "./index.css";
 
 function BarChart({ data }) {
   const svgRef = useRef();
@@ -11,7 +10,6 @@ function BarChart({ data }) {
   // will be called initially and on every data change
   useEffect(() => {
     const svg = select(svgRef.current);
-    console.log(dimensions);
 
     if (!dimensions) return;
 
@@ -80,7 +78,15 @@ function BarChart({ data }) {
 
   return (
     <div ref={wrapperRef} style={{ marginBottom: "2rem" }}>
-      <svg ref={svgRef}>
+      <svg
+        ref={svgRef}
+        style={{
+          background: "#eee",
+          overflow: "visible",
+          display: "block",
+          width: "100%"
+        }}
+      >
         <g className="x-axis" />
         <g className="y-axis" />
       </svg>
