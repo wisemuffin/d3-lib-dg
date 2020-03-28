@@ -20,13 +20,29 @@ const dataDougnut = [
   { date: 4, value: 16.63891630670513 }
 ];
 
+dataWorldPopulation.forEach(d => {
+  d.value = +d.value;
+  d.lastValue = +d.lastValue;
+  d.value = isNaN(d.value) ? 0 : d.value;
+  d.date = +d.year;
+  // d.colour = d3.hsl(Math.random()*360,0.75,0.75)
+  d.colour = "#C8BDFF";
+});
+
 function App() {
   const [data, setData] = useState([25, 30, 45, 60, 10, 65, 75]);
-
   return (
     <React.Fragment>
       {/* <SkeletonD3 data={data} /> */}
-      <BarChartRace data={dataWorldPopulation} width={600} />
+      <BarChartRace
+        data={dataWorldPopulation}
+        width={600}
+        dateGrain="year"
+        top_n={10}
+        startDate={1600}
+        endDate={1644}
+      />
+
       <BoxPlot
         data={dataWeather}
         yAccessor={d => d.temperatureMax}

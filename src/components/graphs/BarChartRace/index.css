@@ -22,12 +22,12 @@ text.caption {
   font-size: 14px;
   fill: #999999;
 }
-text.yearText {
+text.dateText {
   font-size: 96px;
   font-weight: 700;
   fill: #cccccc;
 }
-text.yearIntro {
+text.dateIntro {
   font-size: 48px;
   font-weight: 700;
   fill: #cccccc;

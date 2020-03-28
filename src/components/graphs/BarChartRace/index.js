@@ -1,12 +1,35 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import "d3-selection-multi";
+import _ from "lodash";
 import "./index.css";
 
 import { haloHighlight, halo } from "../../../utility/d3";
 
-const BarChartRace = ({ data, width, xDateAccessor, yAccessor }) => {
+/*
+code taken from https://observablehq.com/@johnburnmurdoch/bar-chart-race-the-most-populous-cities-in-the-world
+then refactored to react
+then made more reusable
+*/
+
+/* Required Data Structure
+[
+    {"date": 2019, "value": 100, "name": "dave", "group": "India", "subgroup": "India"}
+]
+
+groups can be asigned a colour scheme for the bars e.g. content or state
+*/
+
+const BarChartRace = ({
+  data,
+  width,
+  dateGrain,
+  top_n,
+  startDate,
+  endDate
+}) => {
   const ref = useRef(null);
+  const [start, setStart] = useState(false);
 
   let dimensions = {
     width: width,
@@ -20,9 +43,6 @@ const BarChartRace = ({ data, width, xDateAccessor, yAccessor }) => {
   };
 
   const tickDuration = 250;
-  const top_n = 10;
-  const startYear = 1600;
-  const endYear = 1644;
 
   let barPadding =
     (dimensions.height - (dimensions.margin.bottom + dimensions.margin.top)) /
@@ -33,27 +53,18 @@ const BarChartRace = ({ data, width, xDateAccessor, yAccessor }) => {
     if (!data) return;
 
     // 1. prep data
-    console.log("data", data);
-
-    data.forEach(d => {
-      d.value = +d.value;
-      d.lastValue = +d.lastValue;
-      d.value = isNaN(d.value) ? 0 : d.value;
-      d.year = +d.year;
-      // d.colour = d3.hsl(Math.random()*360,0.75,0.75)
-      d.colour = "#C8BDFF";
-    });
+    console.log("barchartrace data: ", data);
 
     let dataset = data;
 
-    let year = startYear;
+    let date = startDate;
 
-    let yearSlice = dataset
-      .filter(d => d.year === year && !isNaN(d.value))
+    let dateSlice = dataset
+      .filter(d => d.date === date && !isNaN(d.value))
       .sort((a, b) => b.value - a.value)
       .slice(0, top_n);
 
-    yearSlice.forEach((d, i) => (d.rank = i));
+    dateSlice.forEach((d, i) => (d.rank = i));
 
     // 2. Create chart dimensions
 
@@ -78,7 +89,7 @@ const BarChartRace = ({ data, width, xDateAccessor, yAccessor }) => {
 
     let x = d3
       .scaleLinear()
-      .domain([0, d3.max(yearSlice, d => d.value)])
+      .domain([0, d3.max(dateSlice, d => d.value)])
       .range([
         dimensions.margin.left,
         dimensions.width - dimensions.margin.right - 65
@@ -107,15 +118,7 @@ const BarChartRace = ({ data, width, xDateAccessor, yAccessor }) => {
         "#f7bb5f",
         "#eafb50"
       ])
-      .domain([
-        "India",
-        "Europe",
-        "Asia",
-        "Latin America",
-        "Middle East",
-        "North America",
-        "Africa"
-      ]);
+      .domain(dataset.map(d => d.group));
     // .domain(groups);
 
     let xAxis = d3
@@ -137,7 +140,7 @@ const BarChartRace = ({ data, width, xDateAccessor, yAccessor }) => {
     // draw chart
     bounds
       .selectAll("rect.bar")
-      .data(yearSlice, d => d.name)
+      .data(dateSlice, d => d.name)
       .enter()
       .append("rect")
       .attr("class", "bar")
@@ -149,7 +152,7 @@ const BarChartRace = ({ data, width, xDateAccessor, yAccessor }) => {
 
     bounds
       .selectAll("text.label")
-      .data(yearSlice, d => d.name)
+      .data(dateSlice, d => d.name)
       .enter()
       .append("text")
       .attr("class", "label")
@@ -178,7 +181,7 @@ const BarChartRace = ({ data, width, xDateAccessor, yAccessor }) => {
 
     bounds
       .selectAll("text.valueLabel")
-      .data(yearSlice, d => d.name)
+      .data(dateSlice, d => d.name)
       .enter()
       .append("text")
       .attr("class", "valueLabel")
@@ -186,11 +189,83 @@ const BarChartRace = ({ data, width, xDateAccessor, yAccessor }) => {
       .attr("y", d => y(d.rank) + 5 + (y(1) - y(0)) / 2 + 1)
       .text(d => d3.format(",")(d.lastValue));
 
-    /////////////////////////
+    // draw peripherals
+
+    let title = wrapper
+      .select(".title")
+      .attr("y", 24)
+      .html("The most populous cities in the world from 1500 to 2018");
+    haloHighlight(title, 250, 2, 1, "#000000");
+
+    let subTitle = wrapper
+      .select(".subTitle")
+      .attr("y", 55)
+      .html("Population (thousands)");
+    haloHighlight(subTitle, 1750, 1, 1, "#777777");
+
+    let credit = bounds
+      .append("text")
+      .attrs({
+        class: "caption",
+        x: dimensions.width,
+        y: dimensions.height - 28
+      })
+      .styles({
+        "text-anchor": "end"
+      })
+      .html("Graphic: @jburnmurdoch")
+      .call(halo, 10);
+
+    let sources = bounds
+      .append("text")
+      .attrs({
+        class: "caption",
+        x: dimensions.width,
+        y: dimensions.height - 6
+      })
+      .styles({
+        "text-anchor": "end"
+      })
+      .html(
+        "Sources: Reba, M. L., F. Reitsma, and K. C. Seto. 2018; Demographia"
+      )
+      .call(halo, 10);
+
+    let dateIntro = bounds
+      .append("text")
+      .attrs({
+        class: "dateIntro",
+        x: dimensions.width - 225,
+        y: dimensions.height - 195
+      })
+      .styles({
+        "text-anchor": "end"
+      })
+      .html(`${_.startCase(_.toLower(dateGrain))}: `);
+
+    haloHighlight(dateIntro, 3000, 3, 1, "#cccccc");
+
+    let dateText = bounds
+      .append("text")
+      .attrs({
+        class: "dateText",
+        x: dimensions.width - 225,
+        y: dimensions.height - 195
+      })
+      // .styles({
+      //   'text-anchor': 'end'
+      // })
+      .html(~~date);
+
+    dateText.call(halo, 10);
+
+    haloHighlight(dateText, 3000, 8, 1, "#cccccc");
+
+    // interactivity
 
     d3.timeout(_ => {
       bounds
-        .selectAll(".yearIntro")
+        .selectAll(".dateIntro")
         .transition()
         .duration(1000)
         .ease(d3.easeLinear)
@@ -199,14 +274,14 @@ const BarChartRace = ({ data, width, xDateAccessor, yAccessor }) => {
         });
 
       let ticker = d3.interval(e => {
-        yearSlice = dataset
-          .filter(d => d.year == year && !isNaN(d.value))
+        dateSlice = dataset
+          .filter(d => d.date == date && !isNaN(d.value))
           .sort((a, b) => b.value - a.value)
           .slice(0, top_n);
 
-        yearSlice.forEach((d, i) => (d.rank = i));
+        dateSlice.forEach((d, i) => (d.rank = i));
 
-        x.domain([0, d3.max(yearSlice, d => d.value)]);
+        x.domain([0, d3.max(dateSlice, d => d.value)]);
 
         bounds
           .select(".xAxis")
@@ -215,7 +290,7 @@ const BarChartRace = ({ data, width, xDateAccessor, yAccessor }) => {
           .ease(d3.easeLinear)
           .call(xAxis);
 
-        let bars = bounds.selectAll(".bar").data(yearSlice, d => d.name);
+        let bars = bounds.selectAll(".bar").data(dateSlice, d => d.name);
 
         bars
           .enter()
@@ -258,7 +333,7 @@ const BarChartRace = ({ data, width, xDateAccessor, yAccessor }) => {
           })
           .remove();
 
-        let labels = bounds.selectAll(".label").data(yearSlice, d => d.name);
+        let labels = bounds.selectAll(".label").data(dateSlice, d => d.name);
 
         labels
           .enter()
@@ -343,7 +418,7 @@ const BarChartRace = ({ data, width, xDateAccessor, yAccessor }) => {
 
         let valueLabels = bounds
           .selectAll(".valueLabel")
-          .data(yearSlice, d => d.name);
+          .data(dateSlice, d => d.name);
 
         valueLabels
           .enter()
@@ -387,87 +462,16 @@ const BarChartRace = ({ data, width, xDateAccessor, yAccessor }) => {
           })
           .remove();
 
-        yearText.html(~~year);
+        dateText.html(~~date);
 
-        if (year == endYear) ticker.stop();
-        year = year + 1;
+        if (date == endDate) ticker.stop();
+        date = date + 1;
       }, tickDuration);
     }, 6000);
-
-    // draw peripherals
-
-    let title = wrapper
-      .select(".title")
-      .attr("y", 24)
-      .html("The most populous cities in the world from 1500 to 2018");
-    haloHighlight(title, 250, 2, 1, "#000000");
-
-    let subTitle = wrapper
-      .select(".subTitle")
-      .attr("y", 55)
-      .html("Population (thousands)");
-    haloHighlight(subTitle, 1750, 1, 1, "#777777");
-
-    let credit = bounds
-      .append("text")
-      .attrs({
-        class: "caption",
-        x: dimensions.width,
-        y: dimensions.height - 28
-      })
-      .styles({
-        "text-anchor": "end"
-      })
-      .html("Graphic: @jburnmurdoch")
-      .call(halo, 10);
-
-    let sources = bounds
-      .append("text")
-      .attrs({
-        class: "caption",
-        x: dimensions.width,
-        y: dimensions.height - 6
-      })
-      .styles({
-        "text-anchor": "end"
-      })
-      .html(
-        "Sources: Reba, M. L., F. Reitsma, and K. C. Seto. 2018; Demographia"
-      )
-      .call(halo, 10);
-
-    let yearIntro = bounds
-      .append("text")
-      .attrs({
-        class: "yearIntro",
-        x: dimensions.width - 225,
-        y: dimensions.height - 195
-      })
-      .styles({
-        "text-anchor": "end"
-      })
-      .html("Year: ");
-
-    haloHighlight(yearIntro, 3000, 3, 1, "#cccccc");
-
-    let yearText = bounds
-      .append("text")
-      .attrs({
-        class: "yearText",
-        x: dimensions.width - 225,
-        y: dimensions.height - 195
-      })
-      // .styles({
-      //   'text-anchor': 'end'
-      // })
-      .html(~~year);
-
-    yearText.call(halo, 10);
-
-    haloHighlight(yearText, 3000, 8, 1, "#cccccc");
   }, [
     barPadding,
     data,
+    dateGrain,
     dimensions,
     dimensions.boundedHeight,
     dimensions.boundedWidth,
@@ -476,9 +480,10 @@ const BarChartRace = ({ data, width, xDateAccessor, yAccessor }) => {
     dimensions.margin.left,
     dimensions.margin.top,
     dimensions.width,
-    width,
-    xDateAccessor,
-    yAccessor
+    endDate,
+    startDate,
+    top_n,
+    width
   ]);
 
   return (
