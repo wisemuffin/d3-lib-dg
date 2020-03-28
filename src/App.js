@@ -5,9 +5,12 @@ import BarChart from "./components/graphs/BarChart";
 import Histogram from "./components/graphs/Histogram";
 import GaugeChart from "./components/graphs/GaugeChart";
 import Dougnut from "./components/graphs/Dougnut";
+import BoxPlot from "./components/graphs/BoxPlot";
+import BarChartRace from "./components/graphs/BarChartRace";
 import "./App.css";
 
 import dataWeather from "./my_weather_data";
+import dataWorldPopulation from "./populationWorld";
 
 const dataDougnut = [
   { date: 0, value: 4.827326614168159 },
@@ -20,13 +23,16 @@ const dataDougnut = [
 function App() {
   const [data, setData] = useState([25, 30, 45, 60, 10, 65, 75]);
 
-  // Histogram params
-  const metricAccessor = d => d.humidity;
-  const yAccessor = d => d.length;
-
   return (
     <React.Fragment>
       {/* <SkeletonD3 data={data} /> */}
+      <BarChartRace data={dataWorldPopulation} width={600} />
+      <BoxPlot
+        data={dataWeather}
+        yAccessor={d => d.temperatureMax}
+        xDateAccessor={d => d.month}
+        width={600}
+      />
       <div>
         <span className="label">Animated Pie Hooks (D3 animations)</span>
         <Dougnut
@@ -41,8 +47,8 @@ function App() {
 
       <Histogram
         data={dataWeather}
-        yAccessor={yAccessor}
-        metricAccessor={metricAccessor}
+        yAccessor={d => d.length}
+        metricAccessor={d => d.humidity}
         width={600}
       />
       <GaugeChart data={[0.5, 0.5]} />

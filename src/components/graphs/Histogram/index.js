@@ -24,8 +24,6 @@ const Histogram = ({ data, width, metricAccessor, yAccessor }) => {
     dimensions.boundedHeight =
       dimensions.height - dimensions.margin.top - dimensions.margin.bottom;
 
-    console.log("dimensions hist: ", dimensions);
-    console.log("hist data: ", data);
     const wrapper = d3
       .select(ref.current)
       .attr("width", dimensions.width)
