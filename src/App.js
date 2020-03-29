@@ -9,6 +9,8 @@ import BoxPlot from "./components/graphs/BoxPlot";
 import BarChartRace from "./components/graphs/BarChartRace";
 import "./App.css";
 
+import Button from "@material-ui/core/Button";
+
 import dataWeather from "./my_weather_data";
 import dataWorldPopulation from "./populationWorld";
 
@@ -31,6 +33,7 @@ dataWorldPopulation.forEach(d => {
 
 function App() {
   const [data, setData] = useState([25, 30, 45, 60, 10, 65, 75]);
+  let [barRaceNum, setBarRaceNum] = useState(1);
   return (
     <React.Fragment>
       {/* <SkeletonD3 data={data} /> */}
@@ -41,7 +44,15 @@ function App() {
         top_n={10}
         startDate={1600}
         endDate={1644}
+        forceReRender={barRaceNum}
       />
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => setBarRaceNum(++barRaceNum)}
+      >
+        Reset Bar Race
+      </Button>
 
       <BoxPlot
         data={dataWeather}

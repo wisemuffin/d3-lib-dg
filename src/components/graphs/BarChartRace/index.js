@@ -33,11 +33,11 @@ const BarChartRace = ({
 
   let dimensions = {
     width: width,
-    height: 600,
+    height: 800,
     margin: {
       top: 80,
       right: 5,
-      bottom: 5,
+      bottom: 80,
       left: 5
     }
   };
@@ -90,18 +90,12 @@ const BarChartRace = ({
     let x = d3
       .scaleLinear()
       .domain([0, d3.max(dateSlice, d => d.value)])
-      .range([
-        dimensions.margin.left,
-        dimensions.width - dimensions.margin.right - 65
-      ]);
+      .range([0, dimensions.boundedWidth]);
 
     let y = d3
       .scaleLinear()
       .domain([top_n, 0])
-      .range([
-        dimensions.height - dimensions.margin.bottom,
-        dimensions.margin.top
-      ]);
+      .range([dimensions.boundedHeight, 0]);
 
     // draw axis
     let groups = dataset.map(d => d.group);
@@ -125,14 +119,12 @@ const BarChartRace = ({
       .axisTop()
       .scale(x)
       .ticks(dimensions.width > 500 ? 5 : 2)
-      .tickSize(
-        -(dimensions.height - dimensions.margin.top - dimensions.margin.bottom)
-      )
+      .tickSize(-dimensions.boundedHeight)
       .tickFormat(d => d3.format(",")(d));
 
     bounds
       .select(".x-axis")
-      .attr("transform", `translate(0, ${dimensions.margin.top})`)
+      //   .attr("transform", `translate(0, ${dimensions.margin.top})`)
       .call(xAxis)
       .selectAll(".tick line")
       .classed("origin", d => d == 0);
@@ -203,7 +195,7 @@ const BarChartRace = ({
       .html("Population (thousands)");
     haloHighlight(subTitle, 1750, 1, 1, "#777777");
 
-    let credit = bounds
+    let credit = wrapper
       .append("text")
       .attrs({
         class: "caption",
@@ -216,7 +208,7 @@ const BarChartRace = ({
       .html("Graphic: @jburnmurdoch")
       .call(halo, 10);
 
-    let sources = bounds
+    let sources = wrapper
       .append("text")
       .attrs({
         class: "caption",
