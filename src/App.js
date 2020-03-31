@@ -7,6 +7,7 @@ import GaugeChart from "./components/graphs/GaugeChart";
 import Dougnut from "./components/graphs/Dougnut";
 import BoxPlot from "./components/graphs/BoxPlot";
 import BarChartRace from "./components/graphs/BarChartRace";
+import DougnutAnimated from "./components/graphs/DougnutAnimated";
 import "./App.css";
 
 import Button from "@material-ui/core/Button";
@@ -37,6 +38,13 @@ function App() {
   return (
     <React.Fragment>
       {/* <SkeletonD3 data={data} /> */}
+      <DougnutAnimated
+        percent={75}
+        width={300}
+        height={300}
+        innerRadius={60}
+        outerRadius={100}
+      />
       <BarChartRace
         data={dataWorldPopulation}
         width={600}

@@ -36,9 +36,9 @@ const BarChartRace = ({
     height: 800,
     margin: {
       top: 80,
-      right: 5,
+      right: 45,
       bottom: 80,
-      left: 5
+      left: 10
     }
   };
 
